@@ -1,0 +1,82 @@
+services:
+  namenode:
+    image: bde2020/hadoop-namenode:2.0.0-hadoop3.2.1-java8
+    container_name: banking-namenode
+    restart: unless-stopped
+    environment:
+      CLUSTER_NAME: banking-cluster
+      CORE_CONF_fs_defaultFS: hdfs://namenode:9000
+      HDFS_CONF_dfs_client_use_datanode_hostname: "true"
+      HDFS_CONF_dfs_datanode_hostname: banking-datanode
+    ports:
+      - "9870:9870"
+      - "9000:9000"
+    volumes:
+      - namenode_data:/hadoop/dfs/name
+
+  datanode:
+    image: bde2020/hadoop-datanode:2.0.0-hadoop3.2.1-java8
+    container_name: banking-datanode
+    restart: unless-stopped
+    ports:
+      - "9864:9864"
+      - "9866:9866"
+    environment:
+      CORE_CONF_fs_defaultFS: hdfs://namenode:9000
+      CORE_CONF_dfs_datanode_hostname: banking-datanode
+      SERVICE_PRECONDITION: namenode:9870
+    volumes:
+      - datanode_data:/hadoop/dfs/data
+    depends_on:
+      - namenode
+
+  hive:
+    image: apache/hive:4.0.1
+    container_name: banking-hive
+    restart: unless-stopped
+    depends_on:
+      - namenode
+    ports:
+      - "10000:10000"
+      - "10002:10002"
+    environment:
+      SERVICE_NAME: hiveserver2
+      SERVICE_OPTS: "-Dhive.metastore.uris="
+    volumes:
+      - hive_data:/opt/hive/data
+      - ./hadoop-config/core-site.xml:/opt/hadoop/etc/hadoop/core-site.xml:ro
+
+  hue-db:
+    image: postgres:16
+    container_name: banking-hue-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: hue
+      POSTGRES_USER: hue
+      POSTGRES_PASSWORD: ${HUE_DB_PASSWORD:?Set HUE_DB_PASSWORD in your local environment}
+    volumes:
+      - hue_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U hue -d hue"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+
+  hue:
+    image: gethue/hue:latest
+    command: ["sh", "-c", "./build/env/bin/hue migrate && exec ./build/env/bin/hue runserver 0.0.0.0:8888"]
+    container_name: banking-hue
+    restart: unless-stopped
+    depends_on:
+      - hive
+      - hue-db
+    ports:
+      - "8888:8888"
+    volumes:
+      - ./hue/hue.ini:/usr/share/hue/desktop/conf/z-hue.ini:ro
+
+volumes:
+  namenode_data:
+  datanode_data:
+  hive_data:
+  hue_postgres_data:

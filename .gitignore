@@ -1,0 +1,40 @@
+# Python
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.coverage
+
+# Secrets and environment variables
+.env
+.env.*
+!.env.example
+.aws/
+*credentials*
+*secret*
+
+# macOS
+.DS_Store
+
+# Local databases and runtime files
+*.db
+*.sqlite
+*.sqlite3
+*.log
+
+# Backups
+*.backup
+*.bak
+*.pre-postgres-backup
+*.before-reorder-backup
+*.pre-postgres-backup-*
+
+# Generated data — review before tracking
+data/
+
+# Local Hue configuration and database backups
+hue/hue.ini
+hue/*.ini.*
+hue/*.db*
+hue/data/
