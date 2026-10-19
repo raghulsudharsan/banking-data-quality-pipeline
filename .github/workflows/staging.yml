@@ -9,7 +9,14 @@ jobs:
     environment: staging
 
     steps:
-      - name: Confirm staging approval
+      - name: Verify staging configuration
+        env:
+          STAGING_DEMO_VALUE: ${{ secrets.STAGING_DEMO_VALUE }}
         run: |
-          echo "Staging environment protections have been satisfied."
-          echo "This is a simulation; no deployment was performed."
+          if [ -n "$STAGING_DEMO_VALUE" ]; then
+            echo "Staging secret is configured."
+          else
+            echo "Staging secret is missing."
+            exit 1
+          fi
+          echo "No secret value was printed."
