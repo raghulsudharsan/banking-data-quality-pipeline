@@ -1,0 +1,25 @@
+name: Banking Pipeline Release
+
+on:
+  workflow_dispatch:
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Prepare release package
+        run: |
+          mkdir -p release
+          zip -r release/banking-data-quality-pipeline.zip src requirements.txt README.md \
+            -x "*.pyc" "*/__pycache__/*"
+
+      - name: Upload release artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: banking-data-quality-pipeline
+          path: release/banking-data-quality-pipeline.zip
+          retention-days: 14
