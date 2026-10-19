@@ -38,3 +38,6 @@ hue/hue.ini
 hue/*.ini.*
 hue/*.db*
 hue/data/
+
+# Editor settings
+.vscode/
